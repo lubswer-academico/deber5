@@ -1,15 +1,9 @@
 import { AuthenticatedTechnician, SessionValidationResult, TechnicianCredentials } from './types';
 
-/**
- * Sanitiza el código de empleado eliminando espacios al inicio y al final.
- */
 export function sanitizeEmployeeCode(code: string): string {
   return code.trim();
 }
 
-/**
- * Valida que los campos obligatorios de credenciales no estén vacíos.
- */
 export function validateCredentialsFormat(
   code: string,
   pin: string
@@ -27,9 +21,6 @@ export function validateCredentialsFormat(
   return { isValid: true };
 }
 
-/**
- * Autentica las credenciales ingresadas comparándolas con el catálogo offline determinista.
- */
 export function authenticateTechnician(
   code: string,
   pin: string,

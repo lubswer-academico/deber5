@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { GlobalStatusBar } from '@/components/GlobalStatusBar';
+import { HomeAppLayout } from '@/components/layout/HomeAppLayout';
 import { useMeterSearchController } from '@/presentation/meter/useMeterSearchController';
 import { formatMeterStatusLabel } from '@/domain/meter/meterRules';
 import {
@@ -53,9 +53,7 @@ export default function MeterSearchScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <GlobalStatusBar />
-
+    <HomeAppLayout>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Cabecera de Navegación */}
         <View style={styles.header}>
@@ -306,20 +304,20 @@ export default function MeterSearchScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </HomeAppLayout>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: EPMAPS_COLORS.bgLight,
+    backgroundColor: 'transparent',
   },
   container: {
-    padding: EPMAPS_SPACING.lg,
-    paddingBottom: EPMAPS_SPACING.hero,
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: 28,
   },
-  // Cabecera de Navegación
   header: {
     marginBottom: EPMAPS_SPACING.lg,
   },
@@ -351,7 +349,6 @@ const styles = StyleSheet.create({
     color: EPMAPS_COLORS.textMuted,
     marginTop: 3,
   },
-  // Formulario de Búsqueda
   inputContainer: {
     backgroundColor: EPMAPS_COLORS.surface,
     borderRadius: EPMAPS_RADII.lg,
@@ -420,7 +417,6 @@ const styles = StyleSheet.create({
   buttonIcon: {
     marginRight: 8,
   },
-  // Banners de Alerta
   alertHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -480,7 +476,6 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     fontWeight: EPMAPS_TYPOGRAPHY.weights.bold,
   },
-  // Ficha Técnica y Comercial (7 Campos)
   recordCard: {
     backgroundColor: EPMAPS_COLORS.surface,
     borderRadius: EPMAPS_RADII.lg,
@@ -618,7 +613,6 @@ const styles = StyleSheet.create({
     fontWeight: EPMAPS_TYPOGRAPHY.weights.medium,
     color: EPMAPS_COLORS.textMuted,
   },
-  // Bloqueo / Duplicidad R10
   duplicateBox: {
     borderRadius: EPMAPS_RADII.lg,
     padding: EPMAPS_SPACING.md,
@@ -668,7 +662,6 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     fontWeight: EPMAPS_TYPOGRAPHY.weights.bold,
   },
-  // Botón de Captura Maestro (Paleta EPMAPS: --color-button-bg = primary #2D72C0)
   captureContainer: {
     marginTop: EPMAPS_SPACING.xs,
   },

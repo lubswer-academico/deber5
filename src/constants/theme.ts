@@ -1,19 +1,10 @@
-/**
- * Tokens y constantes oficiales de diseño de EPMAPS Agua de Quito.
- * Basado estrictamente en:
- * - EPMAPS-Color-System (Identidad corporativa y contrastes WCAG 2.1 AA)
- * - emil-design-eng (Ingeniería de interacción, ritmo vertical y áreas táctiles >= 48pt)
- * - design-taste-frontend (Sobriedad institucional, tipografía limpia y jerarquía sólida)
- */
 
 export const EPMAPS_COLORS = {
-  // Colores Corporativos Primarios
   primaryDark: '#153268', // Azul Marino Oscuro (hero, encabezados, texto corporativo)
   primary: '#2D72C0',     // Azul Medio Corporativo (botones principales, acentos)
   accent: '#63C5B5',      // Turquesa (resalte sobre fondos oscuros)
   accentDark: '#3B766C',  // Variante turquesa oscurecida accesible sobre fondos claros (5.26:1)
 
-  // Superficies y Fondos
   surface: '#FFFFFF',
   bgLight: '#F8FAFC',
   bgSecondary: '#F1F5F9',
@@ -21,7 +12,6 @@ export const EPMAPS_COLORS = {
   bgBlueBorder: '#BAE6FD',
   primaryDisabled: '#93C5FD',
 
-  // Estados Semánticos
   success: '#2E7D32',
   successDark: '#1B5E20',
   successBg: '#E8F5E9',
@@ -39,7 +29,6 @@ export const EPMAPS_COLORS = {
   dangerSoftBg: '#FEF2F2',
   dangerSoftBorder: '#FCA5A5',
 
-  // Estados Operativos de Cola y Sincronización (WCAG 2.1 AA >= 4.5:1 bajo luz solar)
   verification: '#4527A0',       // Pendiente de verificar (contingencia sin señal, 8.62:1)
   verificationBg: '#EDE7F6',
   verificationBorder: '#D1C4E9',
@@ -54,7 +43,6 @@ export const EPMAPS_COLORS = {
   attentionBorder: '#FB923C',
   attentionSurface: '#FFFBEB',
 
-  // Escala de Grises y Bordes
   borderLight: '#E2E8F0',
   borderMedium: '#CBD5E1',
   textMain: '#153268',

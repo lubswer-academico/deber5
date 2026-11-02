@@ -2,9 +2,6 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 const PHOTOS_DIRECTORY = `${FileSystem.documentDirectory || ''}epmaps_photos/`;
 
-/**
- * Asegura la existencia del directorio permanente de fotos.
- */
 export async function ensurePhotosDirectoryExists(): Promise<void> {
   try {
     const dirInfo = await FileSystem.getInfoAsync(PHOTOS_DIRECTORY);
@@ -16,10 +13,6 @@ export async function ensurePhotosDirectoryExists(): Promise<void> {
   }
 }
 
-/**
- * Persiste una imagen temporal en el directorio protegido permanente de la app con un nombre único por medidor.
- * Retorna la URI permanente del archivo.
- */
 export async function persistPhoto(tempUri: string, meterCode: string): Promise<string> {
   await ensurePhotosDirectoryExists();
   const timestamp = Date.now();
@@ -39,9 +32,6 @@ export async function persistPhoto(tempUri: string, meterCode: string): Promise<
   }
 }
 
-/**
- * Elimina un archivo de foto huérfano de manera segura cuando se reemplaza o se descarta un borrador.
- */
 export async function deletePhoto(photoUri?: string | null): Promise<void> {
   if (!photoUri) return;
   try {

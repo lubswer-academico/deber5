@@ -5,17 +5,10 @@ import { useSessionController } from '@/presentation/session/useSessionControlle
 
 export default function IndexScreen() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useSessionController();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/home');
-      } else {
-        router.replace('/login');
-      }
-    }
-  }, [isLoading, isAuthenticated, router]);
+    router.replace('/principal');
+  }, [router]);
 
   return (
     <View style={styles.container}>

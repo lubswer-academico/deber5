@@ -18,27 +18,22 @@ interface SyncEngineState {
   syncError: string | null;
 }
 
-/**
- * Esperas progresivas de reintento automático cuando un envío falla estando online
- * (p. ej. la red se reporta conectada antes de que el DNS/datos estén realmente disponibles).
- */
 const RETRY_DELAYS_MS = [5000, 15000, 30000];
 
 const INITIAL_STATE: SyncEngineState = { isSyncing: false, syncSummary: null, syncError: null };
 
-// ─── Motor único compartido por toda la app (independiente de cuántas pantallas lo usen) ───
 let engineState: SyncEngineState = { ...INITIAL_STATE };
 const stateListeners = new Set<(state: SyncEngineState) => void>();
 const completionListeners = new Set<() => void>();
 
-let inFlight: Promise<void> | null = null; // Mutex global de envío
-let rerunRequested = false; // Hubo una petición mientras se enviaba: repetir al terminar
+let inFlight: Promise<void> | null = null; 
+let rerunRequested = false; 
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let retryAttempt = 0;
 
 let networkUnsubscribe: (() => void) | null = null;
 let subscriberCount = 0;
-let lastConnected: boolean | null = null; // null = estado aún desconocido
+let lastConnected: boolean | null = null; 
 
 function setEngineState(patch: Partial<SyncEngineState>) {
   engineState = { ...engineState, ...patch };
@@ -85,7 +80,6 @@ async function executeCycle(): Promise<void> {
         return;
       }
 
-      // Ciclo exitoso: se reinicia la política de reintentos
       retryAttempt = 0;
       clearRetry();
     } while (rerunRequested);
@@ -98,10 +92,6 @@ async function executeCycle(): Promise<void> {
   }
 }
 
-/**
- * Ejecuta un ciclo de sincronización garantizando que nunca haya dos en paralelo.
- * Si ya hay uno en curso, se agenda una repetición al terminar (para incluir lecturas nuevas).
- */
 export function runSyncCycle(): Promise<void> {
   if (inFlight) {
     rerunRequested = true;
@@ -113,10 +103,6 @@ export function runSyncCycle(): Promise<void> {
   return inFlight;
 }
 
-/**
- * Solicitud silenciosa de envío en segundo plano (p. ej. tras guardar una lectura con señal).
- * Si no hay conexión no hace nada: la lectura queda en cola hasta que vuelva la señal.
- */
 export function requestBackgroundSync(): void {
   fetchCurrentNetworkStatus()
     .then((isOnline) => {
@@ -134,7 +120,6 @@ function handleNetworkChange(isConnected: boolean | null) {
   lastConnected = isConnected;
 
   if (isConnected === true && previous !== true) {
-    // Recuperación de conexión (o arranque con señal): envío automático desatendido
     retryAttempt = 0;
     clearRetry();
     void runSyncCycle();
@@ -160,7 +145,6 @@ function releaseNetworkSubscription() {
   }
 }
 
-/** Solo para pruebas: reinicia el estado global del motor. */
 export function __resetSyncEngineForTests() {
   clearRetry();
   if (networkUnsubscribe) networkUnsubscribe();
@@ -175,13 +159,6 @@ export function __resetSyncEngineForTests() {
   completionListeners.clear();
 }
 
-/**
- * Hook del motor de sincronización.
- * - Envío 100% automático al recuperar conexión o al arrancar con señal (sin intervención del técnico).
- * - Reintentos automáticos con espera progresiva ante fallos estando online.
- * - Mutex y suscripción de red únicos para toda la app, aunque varias pantallas usen el hook.
- * - `syncNow()` queda como disparador manual opcional.
- */
 export function useSyncEngine(onSyncComplete?: () => void): UseSyncEngineReturn {
   const [state, setState] = useState<SyncEngineState>(engineState);
   const onCompleteRef = useRef(onSyncComplete);

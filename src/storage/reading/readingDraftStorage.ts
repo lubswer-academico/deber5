@@ -5,9 +5,6 @@ import { applyReadingUpdate } from '../../domain/readingQueue/queueRules';
 export const DRAFTS_STORAGE_KEY = 'epmaps_reading_drafts_v1';
 export const QUEUE_STORAGE_KEY = 'epmaps_pending_readings_queue_v1';
 
-/**
- * Obtiene todos los borradores almacenados como un mapa indexado por código de medidor.
- */
 async function getAllDrafts(): Promise<Record<string, ReadingDraft>> {
   try {
     const raw = await AsyncStorage.getItem(DRAFTS_STORAGE_KEY);
@@ -19,9 +16,6 @@ async function getAllDrafts(): Promise<Record<string, ReadingDraft>> {
   }
 }
 
-/**
- * Guarda en caliente el borrador activo asociado al medidor.
- */
 export async function saveDraft(draft: ReadingDraft): Promise<void> {
   try {
     const drafts = await getAllDrafts();
@@ -35,9 +29,6 @@ export async function saveDraft(draft: ReadingDraft): Promise<void> {
   }
 }
 
-/**
- * Recupera el borrador activo para el código de medidor especificado.
- */
 export async function getDraft(meterCode: string): Promise<ReadingDraft | null> {
   try {
     const drafts = await getAllDrafts();
@@ -48,9 +39,6 @@ export async function getDraft(meterCode: string): Promise<ReadingDraft | null> 
   }
 }
 
-/**
- * Elimina el borrador activo asociado al medidor especificado.
- */
 export async function clearDraft(meterCode: string): Promise<void> {
   try {
     const drafts = await getAllDrafts();
@@ -63,9 +51,6 @@ export async function clearDraft(meterCode: string): Promise<void> {
   }
 }
 
-/**
- * Retorna la cola de lecturas consolidadas pendientes de sincronización.
- */
 export async function getPendingReadingsQueue(): Promise<ConsolidatedReading[]> {
   try {
     const raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
@@ -77,9 +62,6 @@ export async function getPendingReadingsQueue(): Promise<ConsolidatedReading[]> 
   }
 }
 
-/**
- * Guarda una lectura consolidada en la cola persistente local y purga su borrador temporal.
- */
 export async function saveConsolidatedReading(reading: ConsolidatedReading): Promise<void> {
   try {
     const queue = await getPendingReadingsQueue();
@@ -92,9 +74,6 @@ export async function saveConsolidatedReading(reading: ConsolidatedReading): Pro
   }
 }
 
-/**
- * Retorna la cantidad total de lecturas pendientes de sincronización en la cola local (excluyendo SUBMITTED).
- */
 export async function getPendingReadingsCount(): Promise<number> {
   try {
     const queue = await getPendingReadingsQueue();
@@ -105,9 +84,6 @@ export async function getPendingReadingsCount(): Promise<number> {
   }
 }
 
-/**
- * Recupera una lectura consolidada por su id único.
- */
 export async function getReadingById(id: string): Promise<ConsolidatedReading | null> {
   try {
     const queue = await getPendingReadingsQueue();
@@ -119,9 +95,6 @@ export async function getReadingById(id: string): Promise<ConsolidatedReading | 
   }
 }
 
-/**
- * Recupera una lectura consolidada por su código de medidor.
- */
 export async function getReadingByMeterCode(meterCode: string): Promise<ConsolidatedReading | null> {
   try {
     const queue = await getPendingReadingsQueue();
@@ -133,10 +106,6 @@ export async function getReadingByMeterCode(meterCode: string): Promise<Consolid
   }
 }
 
-/**
- * Actualiza una lectura existente in-place en la cola local, preservando su id, posición y capturedAt.
- * Lanza error si la lectura no existe o si se encuentra en estado 'SUBMITTED'.
- */
 export async function updateConsolidatedReading(updated: ConsolidatedReading): Promise<void> {
   const queue = await getPendingReadingsQueue();
   const index = queue.findIndex(r => r.id === updated.id);
@@ -146,16 +115,12 @@ export async function updateConsolidatedReading(updated: ConsolidatedReading): P
   }
 
   const existing = queue[index];
-  // applyReadingUpdate valida inmutabilidad (SUBMITTED) y preserva id y capturedAt (meterCode es subsanable)
   const updatedEntity = applyReadingUpdate(existing, updated);
 
   queue[index] = updatedEntity;
   await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue));
 }
 
-/**
- * Marca atómicamente una lectura como enviada (SUBMITTED) con su fecha de sincronización.
- */
 export async function markReadingAsSubmitted(
   id: string,
   syncedAt: string = new Date().toISOString()
@@ -176,9 +141,6 @@ export async function markReadingAsSubmitted(
   await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue));
 }
 
-/**
- * Marca atómicamente una lectura como REQUIRES_ATTENTION actualizando motivos y consumo.
- */
 export async function markReadingAsRequiresAttention(
   id: string,
   extra?: Partial<ConsolidatedReading>
@@ -199,9 +161,6 @@ export async function markReadingAsRequiresAttention(
   await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue));
 }
 
-/**
- * Marca atómicamente una lectura como PENDING_SYNC tras verificación diferida exitosa.
- */
 export async function markReadingAsVerifiedSync(
   id: string,
   extra?: Partial<ConsolidatedReading>
@@ -222,10 +181,6 @@ export async function markReadingAsVerifiedSync(
   await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue));
 }
 
-/**
- * Elimina una lectura no enviada de la cola local (por ejemplo, registro huérfano con código inexistente).
- * Lanza un error si la lectura ya fue enviada (SUBMITTED).
- */
 export async function deleteConsolidatedReading(id: string): Promise<void> {
   const queue = await getPendingReadingsQueue();
   const index = queue.findIndex(r => r.id === id);

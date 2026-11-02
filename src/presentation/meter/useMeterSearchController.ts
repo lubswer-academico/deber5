@@ -40,7 +40,6 @@ export function useMeterSearchController(): UseMeterSearchControllerReturn {
     const formatted = sanitizeMeterCodeInput(text);
     setMeterCodeInput(formatted);
 
-    // Resetear estados de resultado previos al cambiar el código
     setMeterData(null);
     setIsFromCache(false);
     setNoSignalNoDataWarning(false);
@@ -77,7 +76,6 @@ export function useMeterSearchController(): UseMeterSearchControllerReturn {
     const code = meterCodeInput.trim();
 
     try {
-      // 0. Prioridad absoluta local: Verificar si ya existe lectura registrada en el terminal (Spec 004 RF-9, RF-17)
       const localReading = await getReadingByMeterCode(code);
       if (localReading) {
         if (localReading.status === 'SUBMITTED') {
@@ -99,16 +97,14 @@ export function useMeterSearchController(): UseMeterSearchControllerReturn {
         return;
       }
 
-      // 1. Prioridad: Verificar caché de jornada
       const cached = await getMeterFromCache(code);
       if (cached) {
         setMeterData(cached);
         setIsFromCache(true);
 
-        // Verificar regla R10 duplicidad mensual
         const duplicateCheck = checkMonthlyDuplicate(
           cached.lastReading?.date || null,
-          true // Asumida como verificada/oficina si viene en el registro previo
+          true 
         );
         if (duplicateCheck.hasDuplicate) {
           setDuplicateBlock(duplicateCheck);
@@ -119,28 +115,23 @@ export function useMeterSearchController(): UseMeterSearchControllerReturn {
         return;
       }
 
-      // 2. Si no está en caché, consultar conectividad
       const isConnected = await fetchCurrentNetworkStatus();
 
       if (isConnected === false) {
-        // Sin señal y sin datos en caché (D3)
         setNoSignalNoDataWarning(true);
         setIsSearching(false);
         return;
       }
 
-      // 3. Con conexión: consultar API remota
       try {
         const remoteMeter = await fetchMeterFromOffice(code);
         if (!remoteMeter) {
           setErrorMessage('Medidor no encontrado en el catastro central.');
         } else {
-          // Guardar en caché de jornada
           await saveMeterToCache(remoteMeter);
           setMeterData(remoteMeter);
           setIsFromCache(false);
 
-          // Verificar duplicidad mensual R10
           const duplicateCheck = checkMonthlyDuplicate(
             remoteMeter.lastReading?.date || null,
             true
@@ -152,7 +143,6 @@ export function useMeterSearchController(): UseMeterSearchControllerReturn {
           }
         }
       } catch {
-        // Si la llamada falló por error de red o timeout
         setNoSignalNoDataWarning(true);
       }
     } catch (err: any) {

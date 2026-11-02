@@ -24,7 +24,6 @@ export function useGlobalStatusController(): UseGlobalStatusControllerResult {
   useEffect(() => {
     let isMounted = true;
 
-    // Actualizar conteo de pendientes de la cola local
     const updatePendingCount = async () => {
       try {
         const count = await getPendingReadingsCount();

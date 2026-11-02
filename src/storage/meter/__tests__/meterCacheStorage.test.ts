@@ -9,7 +9,6 @@ import {
 import { MeterRecord } from '@/domain/meter/types';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
@@ -58,7 +57,7 @@ describe('meterCacheStorage - Persistencia Directa de Jornada', () => {
   });
 
   it('debe descartar y retornar null si la entrada de caché supera las 24 horas (expirada)', async () => {
-    const expiredTimestamp = Date.now() - (25 * 60 * 60 * 1000); // 25 horas atrás
+    const expiredTimestamp = Date.now() - (25 * 60 * 60 * 1000); 
     const cacheMap = {
       'MED-100201': {
         record: mockMeter1,
@@ -73,8 +72,8 @@ describe('meterCacheStorage - Persistencia Directa de Jornada', () => {
 
   it('debe purgar únicamente las entradas mayores a 24 horas con purgeExpiredCache', async () => {
     const now = Date.now();
-    const expiredTimestamp = now - (25 * 60 * 60 * 1000); // 25 horas atrás
-    const freshTimestamp = now - (2 * 60 * 60 * 1000);   // 2 horas atrás
+    const expiredTimestamp = now - (25 * 60 * 60 * 1000); 
+    const freshTimestamp = now - (2 * 60 * 60 * 1000);   
 
     const cacheMap = {
       'MED-100201': {

@@ -93,19 +93,16 @@ describe('useReadingWizardController (Modo Edición - Spec 004)', () => {
       hookResult = result;
     });
 
-    // Modificar lectura
     act(() => {
       hookResult.current.setCurrentReading('160');
     });
 
-    // Eliminar foto
     await act(async () => {
       await hookResult.current.removePhoto();
     });
 
     expect(hookResult.current.draft.photoUri).toBeNull();
 
-    // Finalizar edición
     let success = false;
     await act(async () => {
       success = await hookResult.current.submitFinalReading();

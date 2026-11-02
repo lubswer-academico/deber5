@@ -1,8 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
 
-/**
- * Solicita permisos de uso de cámara al usuario de forma contextual.
- */
 export async function requestCameraPermissions(): Promise<boolean> {
   try {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -13,9 +10,6 @@ export async function requestCameraPermissions(): Promise<boolean> {
   }
 }
 
-/**
- * Verifica si los permisos de cámara ya están concedidos.
- */
 export async function hasCameraPermissions(): Promise<boolean> {
   try {
     const { status } = await ImagePicker.getCameraPermissionsAsync();
@@ -26,10 +20,6 @@ export async function hasCameraPermissions(): Promise<boolean> {
   }
 }
 
-/**
- * Lanza la interfaz nativa de la cámara para capturar la fotografía del medidor con compresión balanceada.
- * Retorna la URI temporal del archivo o null si el usuario canceló la toma.
- */
 export async function takeMeterPhoto(): Promise<string | null> {
   try {
     const hasPermission = await requestCameraPermissions();

@@ -81,7 +81,6 @@ export default function ReadingWizardScreen() {
   const handleFinish = async () => {
     const success = await submitFinalReading();
     if (success) {
-      // Intento silencioso en segundo plano si hay red disponible (HU-005)
       requestBackgroundSync();
 
       Alert.alert(
@@ -797,7 +796,6 @@ const styles = StyleSheet.create({
     padding: EPMAPS_SPACING.lg,
     paddingBottom: EPMAPS_SPACING.hero,
   },
-  // Cabecera y Navegación Superior
   header: {
     marginBottom: EPMAPS_SPACING.lg,
   },
@@ -858,7 +856,6 @@ const styles = StyleSheet.create({
     color: EPMAPS_COLORS.accentDark,
     fontVariant: EPMAPS_TYPOGRAPHY.tabularNums,
   },
-  // Indicador de pasos del Wizard
   stepIndicatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -907,7 +904,6 @@ const styles = StyleSheet.create({
   stepConnectorActive: {
     backgroundColor: EPMAPS_COLORS.accentDark,
   },
-  // Alertas y Banners Compartidos
   alertHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -939,7 +935,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: EPMAPS_TYPOGRAPHY.weights.semibold,
   },
-  // Modal/Banner de Borrador en Caliente (Paleta EPMAPS: bgBlue + primary/surface)
   draftModalContainer: {
     backgroundColor: EPMAPS_COLORS.bgBlue,
     borderWidth: 1,
@@ -1000,7 +995,6 @@ const styles = StyleSheet.create({
     fontSize: EPMAPS_TYPOGRAPHY.sizes.sm,
     flexShrink: 1,
   },
-  // Contenedor de cada paso
   stepContent: {
     backgroundColor: EPMAPS_COLORS.surface,
     padding: EPMAPS_SPACING.lg,
@@ -1026,7 +1020,6 @@ const styles = StyleSheet.create({
     color: EPMAPS_COLORS.primaryDark,
     marginBottom: EPMAPS_SPACING.lg,
   },
-  // Paso 1: Condición física
   conditionOptions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1085,7 +1078,6 @@ const styles = StyleSheet.create({
     minHeight: 84,
     textAlignVertical: 'top',
   },
-  // Paso 2: Lectura y Consumo
   referenceContainer: {
     backgroundColor: EPMAPS_COLORS.bgSecondary,
     padding: EPMAPS_SPACING.md,
@@ -1286,7 +1278,6 @@ const styles = StyleSheet.create({
     fontWeight: EPMAPS_TYPOGRAPHY.weights.bold,
     lineHeight: 18,
   },
-  // Paso 3: Evidencia Fotográfica y Resumen
   requirementBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1434,7 +1425,6 @@ const styles = StyleSheet.create({
   summaryItemTabular: {
     fontVariant: EPMAPS_TYPOGRAPHY.tabularNums,
   },
-  // Footer acciones de navegación y consolidación
   footerActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',

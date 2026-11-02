@@ -104,7 +104,7 @@ describe('Reading Domain Rules (readingRules)', () => {
       expect(req.damageDescriptionRequired).toBe(true);
       expect(req.readingRequired).toBe(false);
       expect(req.readingDisabled).toBe(false);
-      expect(req.photoRequired).toBe(true); // Siempre obligatoria en dañado
+      expect(req.photoRequired).toBe(true); 
       expect(req.anomalyConfirmationRequired).toBe(false);
     });
 

@@ -10,11 +10,6 @@ import {
   EPMAPS_TYPOGRAPHY,
 } from '@/constants/theme';
 
-/**
- * Barra de estado global persistente y visible en la cabecera operativa.
- * Muestra el indicador de conectividad ("Con señal" / "Sin señal")
- * y el contador de lecturas pendientes de sincronización con contraste para exteriores.
- */
 export function GlobalStatusBar() {
   const { isOnline, connectionLabel, pendingLabel, pendingCount } =
     useGlobalStatusController();

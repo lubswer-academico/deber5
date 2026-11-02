@@ -6,9 +6,6 @@ import {
   StepRequirements,
 } from './types';
 
-/**
- * Calcula el consumo mensual y valida la consistencia física respecto a la lectura anterior.
- */
 export function calculateConsumption(
   currentReading: number,
   previousReading?: number | null
@@ -35,9 +32,6 @@ export function calculateConsumption(
   };
 }
 
-/**
- * Evalúa si el consumo supera estrictamente el triple del consumo promedio histórico (> 3x promedio).
- */
 export function checkConsumptionAnomaly(
   consumption: number | null,
   averageConsumption?: number | null
@@ -54,9 +48,6 @@ export function checkConsumptionAnomaly(
   return consumption > 3 * averageConsumption;
 }
 
-/**
- * Determina los requisitos y obligatoriedad de campos por condición y anomalía.
- */
 export function getStepRequirements(
   condition: MeterCondition,
   isAnomaly: boolean
@@ -97,9 +88,6 @@ export function getStepRequirements(
   }
 }
 
-/**
- * Valida la completitud de cada paso del wizard según las reglas de negocio.
- */
 export function validateStepCompletion(
   step: 1 | 2 | 3,
   draft: Partial<ReadingDraft>,
@@ -123,12 +111,10 @@ export function validateStepCompletion(
   }
 
   if (step === 2) {
-    // Si la lectura está deshabilitada (Inaccesible), se permite avanzar sin lectura
     if (requirements.readingDisabled) {
       return { isValid: true };
     }
 
-    // Si la lectura es obligatoria (Normal)
     if (requirements.readingRequired) {
       if (
         draft.currentReading === undefined ||
@@ -139,7 +125,6 @@ export function validateStepCompletion(
       }
     }
 
-    // Si se ingresó una lectura (en Normal o en Dañado opcional)
     if (
       draft.currentReading !== undefined &&
       draft.currentReading !== null &&
@@ -186,9 +171,6 @@ export function validateStepCompletion(
   return { isValid: true };
 }
 
-/**
- * Crea la estructura inicial de borrador.
- */
 export function createInitialDraft(
   meterCode: string,
   previousReading?: number | null,

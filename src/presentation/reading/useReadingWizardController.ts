@@ -55,7 +55,6 @@ export function useReadingWizardController({
 
   const isEditMode = Boolean(editingReadingId);
 
-  // Detección inicial o precarga de lectura en modo edición
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -95,7 +94,6 @@ export function useReadingWizardController({
     };
   }, [meterCode, editingReadingId]);
 
-  // Consumo y validación de consistencia en tiempo real
   const consumptionInfo: ConsumptionCalculationResult = useMemo(() => {
     if (draft.condition === 'Inaccesible') {
       return {
@@ -115,18 +113,15 @@ export function useReadingWizardController({
     return calculateConsumption(draft.currentReading, draft.previousReading);
   }, [draft.currentReading, draft.previousReading, draft.condition, draft.hasNoPreviousData]);
 
-  // Detección determinista de anomalía (> 3x promedio)
   const isAnomaly = useMemo(() => {
     if (draft.condition === 'Inaccesible') return false;
     return checkConsumptionAnomaly(consumptionInfo.consumption, draft.averageConsumption);
   }, [consumptionInfo.consumption, draft.averageConsumption, draft.condition]);
 
-  // Requisitos dinámicos por condición y anomalía
   const requirements: StepRequirements = useMemo(() => {
     return getStepRequirements(draft.condition, isAnomaly);
   }, [draft.condition, isAnomaly]);
 
-  // Actualizar automáticamente consumo y flag isAnomaly en el borrador
   useEffect(() => {
     setDraft((prev) => {
       if (prev.consumption !== consumptionInfo.consumption || prev.isAnomaly !== isAnomaly) {
@@ -140,7 +135,6 @@ export function useReadingWizardController({
     });
   }, [consumptionInfo.consumption, isAnomaly]);
 
-  // Auto-guardado en caliente en AsyncStorage ante mutaciones del borrador
   const persistDraftState = useCallback(async (updatedDraft: ReadingDraft) => {
     await saveDraft(updatedDraft);
   }, []);
@@ -196,7 +190,6 @@ export function useReadingWizardController({
         const updated = {
           ...prev,
           currentReading: isNaN(numericValue as number) ? null : numericValue,
-          // Si cambia la lectura, resetear la confirmación de anomalía si no coincide
           anomalyConfirmed: false,
           updatedAt: new Date().toISOString(),
         };
@@ -280,7 +273,6 @@ export function useReadingWizardController({
     const tempUri = await takeMeterPhoto();
     if (tempUri) {
       try {
-        // Si ya había una foto previa, eliminar la anterior
         if (draft.photoUri) {
           await deletePhoto(draft.photoUri);
         }
@@ -318,7 +310,6 @@ export function useReadingWizardController({
     setIsSaving(true);
     try {
       if (isEditMode && editingOriginalReading) {
-        // En modo edición: si se reemplazó o eliminó la foto original, purgar la foto anterior
         if (
           editingOriginalReading.photoUri &&
           editingOriginalReading.photoUri !== draft.photoUri
@@ -337,7 +328,6 @@ export function useReadingWizardController({
           isAnomaly: draft.isAnomaly,
           anomalyConfirmed: draft.anomalyConfirmed,
           photoUri: draft.photoUri,
-          // Si requería atención y se confirmó/subsanó (foto, condición, etc.), regresa a PENDING_VERIFICATION para volver a validarse
           status:
             editingOriginalReading.status === 'REQUIRES_ATTENTION'
               ? 'PENDING_VERIFICATION'

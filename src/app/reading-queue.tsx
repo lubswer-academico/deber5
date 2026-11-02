@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { GlobalStatusBar } from '@/components/GlobalStatusBar';
+import { HomeAppLayout } from '@/components/layout/HomeAppLayout';
 import { useReadingQueueController } from '@/presentation/readingQueue/useReadingQueueController';
 import { useSyncEngine } from '@/presentation/sync/useSyncEngine';
 import { useGlobalStatusController } from '@/presentation/session/useGlobalStatusController';
@@ -271,9 +271,7 @@ export default function ReadingQueueScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <GlobalStatusBar />
-
+    <HomeAppLayout>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -410,14 +408,19 @@ export default function ReadingQueueScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </HomeAppLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 22,
+    paddingTop: 8,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: EPMAPS_COLORS.bgLight,
+    backgroundColor: 'transparent',
   },
   header: {
     paddingHorizontal: EPMAPS_SPACING.lg,

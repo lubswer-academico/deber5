@@ -11,12 +11,6 @@ export const officeHttpClient: AxiosInstance = axios.create({
   },
 });
 
-/**
- * Consulta la ficha técnica y comercial del medidor al servidor central de la oficina.
- * @param meterCode Código oficial en formato MED-XXXXXX
- * @returns MeterRecord si se encuentra, o null si no existe (404 o lista vacía)
- * @throws Error si hay fallas de red o indisponibilidad del servidor
- */
 export async function fetchMeterFromOffice(meterCode: string): Promise<MeterRecord | null> {
   try {
     const response = await officeHttpClient.get('/medidores', {

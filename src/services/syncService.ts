@@ -13,16 +13,10 @@ import {
   markReadingAsVerifiedSync,
 } from '../storage/reading/readingDraftStorage';
 
-/**
- * Sincroniza una lectura individual con el sistema central de oficina.
- * Maneja verificación diferida, cotejo con datos frescos de oficina,
- * construcción del payload comercial idempotente y actualización atómica local.
- */
 export async function syncSingleReading(reading: ConsolidatedReading): Promise<SyncSingleResult> {
   try {
     let readingToSync = reading;
 
-    // 1. Si la lectura estaba pendiente de verificación, consultar datos frescos de oficina
     if (reading.status === 'PENDING_VERIFICATION') {
       const officeMeter = await fetchMeterFromOffice(reading.meterCode);
       const evalResult = evaluateDeferredReading(reading, officeMeter);
@@ -42,7 +36,6 @@ export async function syncSingleReading(reading: ConsolidatedReading): Promise<S
         };
       }
 
-      // Se verificó conforme: actualizamos localmente
       await markReadingAsVerifiedSync(reading.id, {
         consumption: evalResult.consumption,
         isAnomaly: evalResult.isAnomaly,
@@ -60,11 +53,9 @@ export async function syncSingleReading(reading: ConsolidatedReading): Promise<S
       };
     }
 
-    // 2. Construir payload comercial con clientReadingId inmutable
     const syncedAt = new Date().toISOString();
     const payload = buildCommercialPayload(readingToSync, syncedAt);
 
-    // 3. Despachar a MockAPI
     try {
       const response = await officeHttpClient.post('/lecturas', payload);
       if (response.status === 200 || response.status === 201) {
@@ -76,7 +67,6 @@ export async function syncSingleReading(reading: ConsolidatedReading): Promise<S
         };
       }
     } catch (httpError: any) {
-      // Idempotencia: si el servidor responde 409 o indica duplicado, se asume enviada con éxito
       if (httpError?.response?.status === 409) {
         await markReadingAsSubmitted(reading.id, syncedAt);
         return {
@@ -104,10 +94,6 @@ export async function syncSingleReading(reading: ConsolidatedReading): Promise<S
   }
 }
 
-/**
- * Sincroniza secuencialmente todas las lecturas elegibles en la cola local.
- * Detiene el procesamiento ante el primer fallo de conexión para no saturar reintentos en microcortes.
- */
 export async function syncAllPendingReadings(): Promise<SyncEngineSummary> {
   const queue = await getPendingReadingsQueue();
   const eligibleReadings = queue.filter(isReadingEligibleForSync);
@@ -128,7 +114,6 @@ export async function syncAllPendingReadings(): Promise<SyncEngineSummary> {
       summary.requiresAttention += 1;
     } else if (result.status === 'FAILED') {
       summary.failed += 1;
-      // Detención en microcorte para preservar batería y estado de cola
       break;
     }
   }

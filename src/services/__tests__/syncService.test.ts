@@ -192,7 +192,7 @@ describe('syncService - Despacho HTTP e Idempotencia con MockAPI (TDD)', () => {
 
       const summary = await syncAllPendingReadings();
 
-      expect(summary.total).toBe(2); // reading2 is skipped because it's REQUIRES_ATTENTION
+      expect(summary.total).toBe(2); 
       expect(summary.sent).toBe(2);
       expect(summary.failed).toBe(0);
       expect(mockStorage.markReadingAsSubmitted).toHaveBeenCalledTimes(2);
@@ -210,7 +210,6 @@ describe('syncService - Despacho HTTP e Idempotencia con MockAPI (TDD)', () => {
       expect(summary.total).toBe(2);
       expect(summary.sent).toBe(0);
       expect(summary.failed).toBe(1);
-      // El segundo registro no se intentó porque se detuvo tras el microcorte
       expect(mockOfficeApi.officeHttpClient.post).toHaveBeenCalledTimes(1);
     });
   });

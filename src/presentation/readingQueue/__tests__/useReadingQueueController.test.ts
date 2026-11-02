@@ -78,7 +78,6 @@ describe('useReadingQueueController (Bandeja de Lecturas)', () => {
     expect(storage.getPendingReadingsQueue).toHaveBeenCalled();
     expect(hookResult.current.isLoading).toBe(false);
     expect(hookResult.current.readings).toHaveLength(3);
-    // Orden descendente por capturedAt: READ-2 (27), READ-3 (26), READ-1 (25)
     expect(hookResult.current.readings[0].id).toBe('READ-2');
     expect(hookResult.current.readings[1].id).toBe('READ-3');
     expect(hookResult.current.readings[2].id).toBe('READ-1');
@@ -94,10 +93,8 @@ describe('useReadingQueueController (Bandeja de Lecturas)', () => {
       hookResult = result;
     });
 
-    // Default 'all'
     expect(hookResult.current.filteredReadings).toHaveLength(3);
 
-    // Switch to 'pending'
     act(() => {
       hookResult.current.setFilter('pending');
     });
@@ -105,7 +102,6 @@ describe('useReadingQueueController (Bandeja de Lecturas)', () => {
     expect(hookResult.current.filteredReadings).toHaveLength(2);
     expect(hookResult.current.filteredReadings.map((r: any) => r.id)).toEqual(['READ-2', 'READ-1']);
 
-    // Switch to 'submitted'
     act(() => {
       hookResult.current.setFilter('submitted');
     });

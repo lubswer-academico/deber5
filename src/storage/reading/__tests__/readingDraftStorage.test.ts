@@ -100,7 +100,7 @@ describe('Reading Draft & Queue Storage (readingDraftStorage)', () => {
 
     expect(await getPendingReadingsCount()).toBe(1);
     const draft = await getDraft('MED-123456');
-    expect(draft).toBeNull(); // Draft was cleared upon consolidation
+    expect(draft).toBeNull(); 
 
     const queue = await getPendingReadingsQueue();
     expect(queue.length).toBe(1);
@@ -200,14 +200,12 @@ describe('Reading Draft & Queue Storage (readingDraftStorage)', () => {
       expect(queue).toHaveLength(2);
       expect(queue[0].id).toBe('READ-1');
       expect(queue[0].currentReading).toBe(65);
-      expect(queue[1].id).toBe('READ-2'); // position preserved
+      expect(queue[1].id).toBe('READ-2'); 
 
-      // Cannot update non-existent
       await expect(
         updateConsolidatedReading({ ...reading1, id: 'GHOST-ID' })
       ).rejects.toThrow('No se encontró la lectura con id GHOST-ID en la cola local.');
 
-      // Cannot update SUBMITTED
       await expect(
         updateConsolidatedReading({ ...reading2, inaccessibilityReason: 'Reja cerrada' })
       ).rejects.toThrow('No es posible modificar una lectura ya enviada a la oficina.');
@@ -255,9 +253,9 @@ describe('Reading Draft & Queue Storage (readingDraftStorage)', () => {
     });
 
     it('returns only pending count excluding SUBMITTED', async () => {
-      expect(await getPendingReadingsCount()).toBe(1); // READ-1 is pending, READ-2 is SUBMITTED
+      expect(await getPendingReadingsCount()).toBe(1); 
       await markReadingAsSubmitted('READ-1');
-      expect(await getPendingReadingsCount()).toBe(0); // All SUBMITTED
+      expect(await getPendingReadingsCount()).toBe(0); 
     });
   });
 });

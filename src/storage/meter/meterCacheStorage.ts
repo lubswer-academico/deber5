@@ -31,9 +31,6 @@ async function persistCacheMap(map: MeterCacheMap): Promise<void> {
   }
 }
 
-/**
- * Guarda o actualiza la ficha del medidor en el caché local de jornada con la marca de tiempo actual.
- */
 export async function saveMeterToCache(meter: MeterRecord): Promise<void> {
   const cacheMap = await loadRawCacheMap();
   cacheMap[meter.code] = {
@@ -43,9 +40,6 @@ export async function saveMeterToCache(meter: MeterRecord): Promise<void> {
   await persistCacheMap(cacheMap);
 }
 
-/**
- * Recupera la ficha técnica y comercial del medidor si existe en el caché y no ha caducado (> 24h).
- */
 export async function getMeterFromCache(code: string): Promise<MeterRecord | null> {
   const cacheMap = await loadRawCacheMap();
   const entry = cacheMap[code];
@@ -63,9 +57,6 @@ export async function getMeterFromCache(code: string): Promise<MeterRecord | nul
   return entry.record;
 }
 
-/**
- * Purga del almacenamiento local todas las entradas con antigüedad mayor a 24 horas.
- */
 export async function purgeExpiredCache(): Promise<void> {
   const cacheMap = await loadRawCacheMap();
   const now = Date.now();
@@ -83,9 +74,6 @@ export async function purgeExpiredCache(): Promise<void> {
   }
 }
 
-/**
- * Vacía completamente el almacenamiento de caché de medidores (por ejemplo al cerrar turno).
- */
 export async function clearMeterCache(): Promise<void> {
   try {
     await AsyncStorage.removeItem(METER_CACHE_STORAGE_KEY);

@@ -1,0 +1,9 @@
+/* global.css */
+@import "tailwindcss";
+@import "uniwind";
+
+@theme {
+  --font-kaushan: KaushanScript_400Regular;
+  --font-limelight: Limelight_400Regular;
+}
+

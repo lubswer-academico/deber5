@@ -39,7 +39,6 @@ function renderHookWithRenderer<T>(hookFn: () => T) {
   };
 }
 
-// Vacía la cola de microtareas pendientes (promesas encadenadas del motor)
 async function flushPromises() {
   for (let i = 0; i < 10; i++) {
     await Promise.resolve();
@@ -134,8 +133,8 @@ describe('useSyncEngine - Sincronización automática desatendida (HU-005 Escena
   });
 
   it('mantiene una única suscripción de red y un único envío aunque haya varias pantallas montadas', async () => {
-    renderHookWithRenderer(() => useSyncEngine()); // layout raíz
-    renderHookWithRenderer(() => useSyncEngine()); // bandeja
+    renderHookWithRenderer(() => useSyncEngine()); 
+    renderHookWithRenderer(() => useSyncEngine()); 
 
     expect(mockNetworkMonitor.subscribeToNetworkStatus).toHaveBeenCalledTimes(1);
 
@@ -240,8 +239,8 @@ describe('useSyncEngine - Sincronización automática desatendida (HU-005 Escena
 
   it('notifica onSyncComplete a la pantalla aunque el ciclo lo haya disparado otra instancia', async () => {
     const onComplete = jest.fn();
-    renderHookWithRenderer(() => useSyncEngine()); // layout
-    renderHookWithRenderer(() => useSyncEngine(onComplete)); // bandeja
+    renderHookWithRenderer(() => useSyncEngine()); 
+    renderHookWithRenderer(() => useSyncEngine(onComplete)); 
 
     await act(async () => {
       networkListener(true);
