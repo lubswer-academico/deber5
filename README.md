@@ -1,94 +1,112 @@
-# EPMAPS – Toma de Lecturas en Campo (Agua de Quito)
+# EPMAPS – Módulo de Autenticación, Firestore, Animaciones y Uniwind
 
-Aplicación móvil **offline-first** desarrollada con **Expo (React Native + TypeScript + Expo Router)** para los técnicos de campo de la **Empresa Pública Metropolitana de Agua Potable y Saneamiento (EPMAPS)**. Permite registrar lecturas mensuales de medidores de agua potable sin depender de cobertura celular, resguardando borradores, evidencias fotográficas y cola de envíos en almacenamiento local duradero con sincronización automática e idempotente hacia los sistemas de oficina.
-
----
-
-## Decisiones Arquitectónicas (ADRs) y Dependencias Avaladas
-
-Todas las decisiones técnicas de librerías, almacenamiento, red y pruebas están formalmente documentadas y justificadas en el directorio **[`docs/adr/`](./docs/adr/)**. Ninguna dependencia externa se incorporó sin su respectivo ADR:
-
-| ADR | Archivo en `docs/adr/` | Librería / Dependencia Avalada | Propósito y Justificación en el Proyecto |
-| :--- | :--- | :--- | :--- |
-| **ADR-001** | [`docs/adr/ADR-001-async-storage-sesion.md`](./docs/adr/ADR-001-async-storage-sesion.md) | `@react-native-async-storage/async-storage` (`2.2.0`) | **Persistencia local clave-valor no volátil:** Resguarda la sesión activa del técnico (`ISessionStorage`), la memoria caché de medidores consultados en la jornada (`meterCacheStorage`), el borrador en curso ante cierres imprevistos y la cola local de lecturas (`readingDraftStorage`). |
-| **ADR-002** | [`docs/adr/ADR-002-netinfo-conectividad.md`](./docs/adr/ADR-002-netinfo-conectividad.md) | `@react-native-community/netinfo` (`12.0.1`) | **Monitoreo reactivo de conectividad en tiempo real:** Escucha los eventos nativos de red del sistema operativo (`INetworkStatusService`) con latencia `< 500 ms` y cero drenaje extra de batería para actualizar la barra global (`Con señal` / `Sin señal`) y disparar la sincronización automática al recuperar cobertura. |
-| **ADR-003** | [`docs/adr/ADR-003-jest-expo-testing.md`](./docs/adr/ADR-003-jest-expo-testing.md) | `jest-expo` (`~57.0.0`), `jest` (`^30.5.2`), `@types/jest` (`^30.0.0`) | **Arnés de pruebas unitarias e integración (TDD):** Permite validar bajo ciclo Rojo-Verde-Refactor toda la lógica pura de dominio (`src/domain/`), los adaptadores de almacenamiento (`src/storage/`), servicios (`src/services/`) y controladores (`src/presentation/`). |
-| **ADR-004** | [`docs/adr/ADR-004-axios-cliente-http.md`](./docs/adr/ADR-004-axios-cliente-http.md) | `axios` (`^1.21.0`) | **Cliente HTTP hacia sistemas de oficina:** Gestiona las consultas remotas de medidores (`GET /medidores`) y la transmisión idempotente de lecturas (`POST` / `PUT`) en `src/services/officeApi.ts`, con control centralizado de `timeout` (`10000 ms`), serialización JSON y manejo defensivo de errores HTTP. |
-| **ADR-005** | [`docs/adr/ADR-005-expo-image-picker-camara.md`](./docs/adr/ADR-005-expo-image-picker-camara.md) | `expo-image-picker` (`~57.0.20`) | **Captura fotográfica con cámara nativa:** Invoca la cámara del fabricante (`launchCameraAsync`) con acceso a flash/linterna y autoenfoque para fotografiar medidores en nichos oscuros o subsuelos, aplicando compresión controlada (`quality: 0.7`) y gestión de permisos en tiempo de ejecución. |
-| **ADR-006** | [`docs/adr/ADR-006-expo-file-system-fotos.md`](./docs/adr/ADR-006-expo-file-system-fotos.md) | `expo-file-system` (`~57.0.7`) | **Almacenamiento duradero de fotografías en disco:** Copia las evidencias fotográficas desde la caché temporal volátil hacia el directorio permanente de documentos (`documentDirectory/epmaps_photos/`), evitando purgas del sistema operativo y manteniendo `AsyncStorage` liviano (guardando únicamente la URI física). |
+Aplicación móvil desarrollada con **Expo (React Native + TypeScript + Expo Router)** para los técnicos de campo de la **Empresa Pública Metropolitana de Agua Potable y Saneamiento (EPMAPS)**. Este documento describe las implementaciones realizadas con **Cloud Firestore**, el sistema de **Animaciones fluidas con Reanimated** y la estilización reactiva con **Uniwind**.
 
 ---
 
-## Arquitectura y Estructura del Proyecto
+## 1. Integración con Firebase & Cloud Firestore
 
-El proyecto aplica **Spec-Driven Development (SDD)** y separación estricta de responsabilidades:
+Se implementó una arquitectura híbrida entre **Firebase Authentication** y **Cloud Firestore** para solventar la limitación de Firebase (que solo autentica por correo) y permitir el acceso de los técnicos mediante su **Código de Empleado institucional** (`TEC-XXX`).
 
-```text
-EPMAPS/
-├── docs/
-│   ├── constitution.md        # Principios arquitectónicos y reglas innegociables
-│   ├── adr/                   # Registros de Decisiones de Arquitectura (ADR-001 a ADR-006)
-│   └── historias/             # Historias de Usuario (HU-001 a HU-005)
-├── specs/                     # Especificaciones EARS, decisiones, planes, tareas y contratos de diseño (001 a 005)
-└── src/
-    ├── domain/                # Lógica de negocio pura en TypeScript (sin React ni I/O)
-    │   ├── session/           # Validación de turno y formato de barra de estado
-    │   ├── meter/             # Formato MED-XXXXXX, traducción de estados y reglas de unicidad mensual
-    │   ├── reading/           # Cálculo de consumo, detección de anomalías (> 3x promedio) y obligatoriedad
-    │   ├── readingQueue/      # Clasificación de bandeja local y reglas de inmutabilidad de lecturas enviadas
-    │   └── sync/              # Reglas de reconciliación diferida, bloqueos y backoff exponencial
-    ├── storage/               # Contratos e implementaciones de persistencia local (AsyncStorage)
-    ├── services/              # Integración con API de oficina (Axios) y sistema de archivos/cámara
-    ├── presentation/          # Controladores (Custom Hooks) y motor reactivo de sincronización (useSyncEngine)
-    ├── components/            # Componentes transversales (GlobalStatusBar)
-    ├── constants/             # Tokens de diseño institucional EPMAPS (theme.ts)
-    └── app/                   # Pantallas y navegación con Expo Router
+### Archivos Principales
+- `src/config/firebase.ts`: Inicialización de Firebase con persistencia local en `AsyncStorage` y exportación de instancias de `auth` y `db` (Firestore).
+- `src/services/tecnicosFirestore.ts`: Servicios para interactuar con la colección `tecnicos` de Cloud Firestore.
+- `src/components/auth/RegisterComponent.tsx`: Formulario de registro con generación automática de código y verificación por correo.
+- `src/presentation/session/useSessionController.ts`: Controlador de autenticación con resolución de identificador (`TEC-XXX` o correo), comprobación de correo verificado y recuperación de clave.
+
+### Flujos Clave Implementados
+
+1. **Generación Automática de Códigos Secuenciales (`generarSiguienteCodigoTecnico`):**
+   - Al registrar un técnico, se consulta la colección `tecnicos` en Firestore.
+   - Se obtiene el código numérico más alto (`TEC-001`, `TEC-002`...) y se genera de forma determinista el siguiente (`TEC-003`) con padding de ceros a la izquierda.
+
+2. **Ficha Completa de Técnico en Firestore (`tecnicos/{uid}`):**
+   - Se crea el usuario en Firebase Authentication y se guardan sus datos extendidos en Cloud Firestore:
+     - `uid`: Identificador único de Firebase Auth.
+     - `codigo`: Código institucional generado (`TEC-XXX`).
+     - `nombre` y `apellido`: Nombre del técnico.
+     - `correo`: Correo electrónico institucional.
+     - `distrito`: Zona de cobertura asignada.
+     - `creadoEn`: Marca temporal ISO de registro.
+
+3. **Autenticación Inteligente por Código de Empleado:**
+   - Si el técnico ingresa un código (sin `@`): la app consulta Firestore mediante una query filtrada `where('codigo', '==', 'TEC-XXX')`.
+   - Recupera el documento del técnico y obtiene el correo asociado.
+   - Ejecuta `signInWithEmailAndPassword` con el correo obtenido y la contraseña ingresada.
+   - **Verificación de correo obligatoria:** Se evalúa `user.emailVerified`. Si aún no ha confirmado su correo desde el enlace enviado al registrarse, se le impide el acceso temporalmente y se le ofrece un botón para reenviar el correo de verificación.
+
+4. **Recuperación de Contraseña:**
+   - Modal interactivo con envío de correo de restablecimiento seguro mediante `sendPasswordResetEmail(auth, correo)`.
+
+---
+
+## 2. Sistema de Animaciones Reactivas (React Native Reanimated)
+
+Se desarrollaron animaciones nativas a 60/120 fps en el hilo de interfaz de usuario (UI Thread) para mejorar la experiencia táctil y ergonomía en campo.
+
+### A. Animación Reactiva del Teclado (`useAnimatedKeyboard` + `useAnimatedStyle`)
+Ubicación: `src/app/principal.tsx`
+- **Detección continua de altura:** `useAnimatedKeyboard` monitorea la apertura y cierre del teclado físico/virtual en tiempo real milímetro a milímetro.
+- **Elevación proporcional del formulario:** `formKeyboardAnimatedStyle` traslada hacia arriba el formulario (`translateY: -keyboard.height.value * 0.50`), garantizando visibilidad de los campos sin aplastarse contra el encabezado.
+- **Desvanecimiento del selector de pestañas:** `tabBarAnimatedStyle` oculta suavemente (`opacity: 0`, `translateY: -15`) los botones de *"Iniciar Sesión / Registro"* y deshabilita sus eventos táctiles mientras el teclado está activo.
+
+### B. Barra Animada de Fortaleza de Contraseña (`zxcvbn` + Reanimated)
+Ubicaciones: `src/components/auth/RegisterComponent.tsx` y `src/components/auth/PasswordStrengthBar.tsx`
+- **Evaluación industrial:** Análisis en tiempo real de contraseñas mediante `zxcvbn-typescript` retornando un puntaje de seguridad de 0 a 4 (Débil a Muy Segura).
+- **Medición física en pantalla:** `useAnimatedRef` y `measure` calculan las dimensiones exactas del contenedor en píxeles.
+- **Transición por tiempo y física:** `withTiming` con curva cúbica `Easing.out(Easing.cubic)` para suavizar el avance de la barra durante 380 ms.
+- **Transición cromática dinámica:** `interpolateColor` mezcla los tonos gradualmente de gris -> rojo -> ámbar -> verde claro -> verde esmeralda.
+- **Crecimiento simétrico:** Al utilizar alineación centrada, la barra se expande desde el centro hacia ambos extremos.
+
+### C. Animaciones de Navegación y Botones del Home
+Ubicación: `src/app/home.tsx` y `src/app/_layout.tsx`
+- **Animación de salida por botón (`SlideOutRight`):** Al presionar *Buscar Medidor*, *Bandeja de Lecturas* o *Lecturas en Cola*, el botón se desmonta y se desliza a la derecha con `Easing.inOut(Easing.quad)`.
+- **Preservación del layout:** Se coloca un placeholder transparente (`opacity-0`) con las mismas dimensiones para que los demás botones no salten mientras dura la animación.
+- **Transición suave de pantalla (`animation: 'fade'`):** Navegación fluida y sin saltos ni zoom del sistema operativo.
+
+---
+
+## 3. Estilización con Uniwind
+
+Toda la interfaz visual fue diseñada y estilizada utilizando **Uniwind** (Tailwind CSS en React Native):
+
+- **Archivo global:** `global.css` configurado como punto de entrada de estilos.
+- **Metro Bundler:** Integrado en `metro.config.js` con el transformador CSS de Uniwind.
+- **Tipado TypeScript:** Archivo de definición de tipos `uniwind-types.d.ts` para soporte de la propiedad `className` en componentes de React Native (`View`, `Text`, `TouchableOpacity`, `ScrollView`, etc.).
+- **Paleta y tokens EPMAPS:** Uso de clases semánticas (`bg-[#245FA8]`, `text-[#003366]`, `border-slate-200/90`, `rounded-2xl`, sombras y layouts en flexbox adaptativos).
+
+---
+
+## 4. Configuración de Variables de Entorno
+
+Crear un archivo `.env` basado en `.env_example`:
+
+```env
+# MockAPI / Backend de Oficina EPMAPS
+EXPO_PUBLIC_OFFICE_API_URL="https://tu-api.mockapi.io/api/v1"
+
+# Configuración de Firebase (Auth y Cloud Firestore)
+EXPO_PUBLIC_FIREBASE_API_KEY="AIzaSy..."
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN="tu-proyecto.firebaseapp.com"
+EXPO_PUBLIC_FIREBASE_PROJECT_ID="tu-proyecto"
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET="tu-proyecto.firebasestorage.app"
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="123456789012"
+EXPO_PUBLIC_FIREBASE_APP_ID="1:123456789012:web:abcdef123456"
 ```
 
 ---
 
-## Módulos Funcionales Implementados
+## 5. Comandos de Ejecución
 
-1. **Inicio de Turno y Estado Global (`specs/001`):** Autenticación offline de técnicos habilitados, persistencia de sesión y barra superior permanente con telemetría de red (`Con señal` / `Sin señal`) y contador de cola.
-2. **Identificación y Consulta de Medidor (`specs/002`):** Búsqueda por código `MED-XXXXXX` en oficina o caché de jornada, contingencia sin señal para medidores nuevos y bloqueo/edición controlada ante duplicidad mensual.
-3. **Captura de Lectura en 3 Pasos (`specs/003`):** Asistente guiado (Estado físico -> Lectura en $\text{m}^3$ -> Evidencia fotográfica y observaciones), autoguardado de borrador en cada paso, alerta de consumo anómalo ($> 3\times$ promedio) y foto obligatoria en caso de daño o anomalía.
-4. **Bandeja Local y Detalle de Lecturas (`specs/004`):** Visualización de lecturas clasificadas por estado (`Pendiente de verificar`, `Pendiente de enviar`, `Requiere atención`, `Enviada`), edición de lecturas aún no transmitidas e inmutabilidad estricta de lecturas enviadas.
-5. **Sincronización Automática y Reconciliación Diferida (`specs/005`):** Envío desatendido en segundo plano al detectar red, contraste tardío contra oficina para lecturas tomadas sin datos previos y retención segura en campo si el contraste revela anomalía sin foto adjunta.
-
----
-
-## Configuración e Inicio Rápido
-
-1. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
-
-2. **Configurar variables de entorno:**
-   Copia el archivo `.env_example` a `.env` y define la URL base del endpoint de oficina (MockAPI):
-   ```env
-   EXPO_PUBLIC_OFFICE_API_URL="https://<tu-instancia>.mockapi.io/api/v1"
-   ```
-
-3. **Iniciar el servidor de desarrollo:**
-   ```bash
-   npx expo start
-   ```
-   *(En redes restringidas o pruebas remotas con Expo Go: `npx expo start --tunnel`)*
-
----
-
-## Comandos de Verificación y Calidad
-
-- **Ejecutar suite de pruebas automatizadas (15 suites / 153 tests):**
+- **Iniciar la aplicación:**
   ```bash
-  npx jest
+  npx expo start
   ```
-- **Verificación estática de tipos TypeScript:**
+- **Verificación de tipos TypeScript:**
   ```bash
   npx tsc --noEmit
   ```
-- **Linter del proyecto:**
+- **Ejecutar pruebas unitarias:**
   ```bash
-  npx expo lint
+  npx jest
   ```
